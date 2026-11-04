@@ -1,0 +1,157 @@
+-- Złączenia wewnętrzne (INNER JOIN)
+
+-- ZADANIE 9. Kto pracuje w poszczególnych zakładach?[span_0](start_span)[span_0](end_span)
+SELECT p.imie, p.nazwisko, z.nazwa 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID = z.zID;
+
+-- ZADANIE 10. Na jakim etacie pracują poszczególni pracownicy?[span_1](start_span)[span_1](end_span)
+SELECT p.imie, p.nazwisko, e.nazwa 
+FROM Pracownicy p 
+JOIN Etaty e ON p.eID = e.eID;
+
+-- ZADANIE 11. Kto jest kierownikiem poszczególnych zakładów?[span_2](start_span)[span_2](end_span)
+SELECT z.nazwa, p.imie, p.nazwisko 
+FROM Zaklady z 
+JOIN Pracownicy p ON z.kierownik = p.pID;
+
+-- ZADANIE 12. Ile godzin wynikających z pensum musi przepracować każdy z pracowników?[span_3](start_span)[span_3](end_span)
+SELECT p.imie, p.nazwisko, e.pensum 
+FROM Pracownicy p 
+JOIN Etaty e ON p.eID = e.eID;
+
+-- ZADANIE 13. Kto z pracowników ma tytuł profesora i ile godzin wynikających z pensum musi przepracować w trakcie roku akademickiego?[span_4](start_span)[span_4](end_span)
+SELECT p.imie, p.nazwisko, p.tytul, e.pensum 
+FROM Pracownicy p 
+JOIN Etaty e ON p.eID = e.eID 
+WHERE p.tytul LIKE '%prof%';
+
+-- ZADANIE 14. Jaki jest adres pod którym można znaleźć każdego z pracowników?[span_5](start_span)[span_5](end_span)
+SELECT p.imie, p.nazwisko, z.adres 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID = z.zID;
+
+-- ZADANIE 15. Jaki tytuł/stopień naukowy mają kierownicy wszystkich zakładów?[span_6](start_span)[span_6](end_span)
+SELECT z.nazwa, p.tytul, p.imie, p.nazwisko 
+FROM Zaklady z 
+JOIN Pracownicy p ON z.kierownik = p.pID;
+
+-- ZADANIE 16. Jaki etat zajmują kierownicy wszystkich zakładów?[span_7](start_span)[span_7](end_span)
+SELECT z.nazwa, p.imie, p.nazwisko, e.nazwa AS etat 
+FROM Zaklady z 
+JOIN Pracownicy p ON z.kierownik = p.pID 
+JOIN Etaty e ON p.eID = e.eID;
+
+-- ZADANIE 17. Ile godzin pensum mają kierownicy wszystkich zakładów?[span_8](start_span)[span_8](end_span)
+SELECT z.nazwa, p.imie, p.nazwisko, e.pensum 
+FROM Zaklady z 
+JOIN Pracownicy p ON z.kierownik = p.pID 
+JOIN Etaty e ON p.eID = e.eID;
+
+-- ZADANIE 18. Jaka jest data zatrudnienia pracowników na stanowisku adiunkta?[span_9](start_span)[span_9](end_span)
+SELECT p.imie, p.nazwisko, p.zatrudniony 
+FROM Pracownicy p 
+JOIN Etaty e ON p.eID = e.eID 
+WHERE e.nazwa = 'ADIUNKT';
+
+-- ZADANIE 19. Którzy pracownicy zarabiają więcej niż kierownicy zakładów, w których są zatrudnieni?[span_10](start_span)[span_10](end_span)
+SELECT p.imie, p.nazwisko, p.placa 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID = z.zID 
+JOIN Pracownicy k ON z.kierownik = k.pID 
+WHERE p.placa > k.placa;
+
+-- ZADANIE 20. Którzy pracownicy mają taki sam etat jak kierownicy zakładów, w których pracują, ale zostali zatrudnieni w innym roku?[span_11](start_span)[span_11](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID = z.zID 
+JOIN Pracownicy k ON z.kierownik = k.pID 
+WHERE p.eID = k.eID AND YEAR(p.zatrudniony) <> YEAR(k.zatrudniony);
+
+-- ZADANIE 21. Którzy pracownicy zatrudnieni w tym samym zakładzie mają różne etaty, ale otrzymują takie samo wynagrodzenie?[span_12](start_span)[span_12](end_span)
+SELECT p1.imie, p1.nazwisko, p2.imie, p2.nazwisko 
+FROM Pracownicy p1 
+JOIN Pracownicy p2 ON p1.zID = p2.zID AND p1.pID < p2.pID 
+WHERE p1.eID <> p2.eID AND p1.placa = p2.placa;
+
+-- ZADANIE 22. Którzy pracownicy mają taki sam tytuł naukowy jak kierownicy innych zakładów, ale zajmują inny etat?[span_13](start_span)[span_13](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID <> z.zID 
+JOIN Pracownicy k ON z.kierownik = k.pID 
+WHERE p.tytul = k.tytul AND p.eID <> k.eID;
+
+-- ZADANIE 23. Które pary zakładów mają ten sam adres, ale różne nazwy i różnych kierowników?[span_14](start_span)[span_14](end_span)
+SELECT z1.nazwa, z2.nazwa 
+FROM Zaklady z1 
+JOIN Zaklady z2 ON z1.adres = z2.adres AND z1.zID < z2.zID 
+WHERE z1.nazwa <> z2.nazwa AND z1.kierownik <> z2.kierownik;
+
+-- ZADANIE 24. Którzy pracownicy zarabiają tyle samo co kierownicy innych zakładów, ale zostali zatrudnieni w innym roku?[span_15](start_span)[span_15](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID <> z.zID 
+JOIN Pracownicy k ON z.kierownik = k.pID 
+WHERE p.placa = k.placa AND YEAR(p.zatrudniony) <> YEAR(k.zatrudniony);
+
+-- ZADANIE 25. Którzy pracownicy zostali zatrudnieni wcześniej niż kierownicy ich zakładów, a jednocześnie zarabiają mniej niż kierownicy?[span_16](start_span)[span_16](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID = z.zID 
+JOIN Pracownicy k ON z.kierownik = k.pID 
+WHERE p.zatrudniony < k.zatrudniony AND p.placa < k.placa;
+
+-- ZADANIE 26. Którzy pracownicy mają taką samą płacę i etat jak kierownicy innych zakładów, ale pracują w innym zakładzie niż dany kierownik?[span_17](start_span)[span_17](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+JOIN Zaklady z ON p.zID <> z.zID 
+JOIN Pracownicy k ON z.kierownik = k.pID 
+WHERE p.placa = k.placa AND p.eID = k.eID;
+
+-- ZADANIE 27. Którzy pracownicy mają taki sam etat i tytuł naukowy jak pracownicy innych zakładów, ale różnią się od nich datą zatrudnienia?[span_18](start_span)[span_18](end_span)
+SELECT DISTINCT p1.imie, p1.nazwisko 
+FROM Pracownicy p1 
+JOIN Pracownicy p2 ON p1.zID <> p2.zID 
+WHERE p1.eID = p2.eID AND p1.tytul = p2.tytul AND p1.zatrudniony <> p2.zatrudniony;
+
+-- Złączenia zewnętrzne (LEFT / RIGHT / FULL JOIN)
+
+-- ZADANIE 28. Czy w bazie znajdują się pracownicy bez przypisanych zakładów?[span_19](start_span)[span_19](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+LEFT JOIN Zaklady z ON p.zID = z.zID 
+WHERE p.zID IS NULL;
+
+-- ZADANIE 29. Czy w bazie są osoby bez ustawionego pensum?[span_20](start_span)[span_20](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+LEFT JOIN Etaty e ON p.eID = e.eID 
+WHERE e.pensum IS NULL;
+
+-- ZADANIE 30. Jakie są nazwy wszystkich zakładów oraz imiona i nazwiska przypisanych do nich pracowników? Uwzględnij również etaty, na których nikt nie pracuje.[span_21](start_span)[span_21](end_span)
+SELECT z.nazwa, p.imie, p.nazwisko, e.nazwa 
+FROM Zaklady z 
+FULL JOIN Pracownicy p ON z.zID = p.zID 
+FULL JOIN Etaty e ON p.eID = e.eID;
+
+-- ZADANIE 31. Którzy pracownicy mają przypisany identyfikator etatu, dla którego nie ma odpowiadającego rekordu w tabeli Etaty?[span_22](start_span)[span_22](end_span)
+SELECT p.imie, p.nazwisko 
+FROM Pracownicy p 
+LEFT JOIN Etaty e ON p.eID = e.eID 
+WHERE p.eID IS NOT NULL AND e.eID IS NULL;
+
+-- ZADANIE 32. Jakie są nazwy wszystkich zakładów oraz imiona i nazwiska pracowników w nich zatrudnionych? Uwzględnij również zakłady, w których nie ma pracowników.[span_23](start_span)[span_23](end_span)
+SELECT z.nazwa, p.imie, p.nazwisko 
+FROM Zaklady z 
+LEFT JOIN Pracownicy p ON z.zID = p.zID;
+
+-- ZADANIE 33. Jakie są nazwy wszystkich etatów oraz dane pracowników, którzy je zajmują? Uwzględnij również pracowników, których identyfikator etatu nie odpowiada żadnemu rekordowi w tabeli Etaty.[span_24](start_span)[span_24](end_span)
+SELECT e.nazwa, p.imie, p.nazwisko 
+FROM Etaty e 
+FULL JOIN Pracownicy p ON e.eID = p.eID;
+
+-- ZADANIE 34. Jakie są nazwy wszystkich zakładów, imiona i nazwiska ich kierowników oraz dane pracowników zatrudnionych w tych zakładach? Uwzględnij również zakłady bez pracowników i zakłady, dla których nie można znaleźć kierownika.[span_25](start_span)[span_25](end_span)
+SELECT z.nazwa, k.imie AS imie_kierownika, k.nazwisko AS nazwisko_kierownika, p.imie AS imie_pracownika, p.nazwisko AS nazwisko_pracownika 
+FROM Zaklady z 
+LEFT JOIN Pracownicy k ON z.kierownik = k.pID 
+LEFT JOIN Pracownicy p ON z.zID = p.zID;
