@@ -1,0 +1,141 @@
+-- Podzapytania
+
+-- ZADANIE 10
+SELECT * FROM Pracownicy 
+WHERE eID = (SELECT eID FROM Etaty WHERE nazwa = 'PROFESOR');
+
+-- ZADANIE 11
+SELECT nazwisko, imie FROM Pracownicy 
+WHERE zID = (SELECT zID FROM Zaklady WHERE nazwa = 'Maszyn i Urządzeń Rolniczych');
+
+-- ZADANIE 12
+SELECT nazwa FROM Zaklady z 
+WHERE (SELECT COUNT(*) FROM Pracownicy p WHERE p.zID = z.zID) < 2;
+
+-- ZADANIE 13
+SELECT nazwa FROM Zaklady 
+WHERE zID NOT IN (SELECT zID FROM Pracownicy WHERE tytul = 'prof. dr hab.');
+
+-- ZADANIE 14
+SELECT nazwisko, imie FROM Pracownicy 
+WHERE pID IN (
+    SELECT kierownik FROM Zaklady z 
+    WHERE (SELECT COUNT(*) FROM Pracownicy p WHERE p.zID = z.zID) >= 3
+);
+
+-- ZADANIE 15
+SELECT * FROM Pracownicy 
+WHERE placa < (SELECT AVG(placa) FROM Pracownicy);
+
+-- ZADANIE 16
+SELECT * FROM Pracownicy p1 
+WHERE placa > (SELECT AVG(placa) FROM Pracownicy p2 WHERE p2.zID = p1.zID);
+
+-- ZADANIE 17
+SELECT * FROM Pracownicy 
+WHERE placa > ANY (
+    SELECT placa FROM Pracownicy 
+    WHERE zID = (SELECT zID FROM Zaklady WHERE nazwa = 'Informatyki Stosowanej')
+);
+
+-- ZADANIE 18
+SELECT nazwisko, placa FROM Pracownicy 
+WHERE placa > ALL (
+    SELECT placa FROM Pracownicy 
+    WHERE eID = (SELECT eID FROM Etaty WHERE nazwa = 'ASYSTENT')
+);
+
+-- ZADANIE 19
+SELECT nazwa FROM Zaklady 
+WHERE zID IN (SELECT zID FROM Pracownicy WHERE placa > 8000);
+
+-- ZADANIE 20
+SELECT p.nazwisko, p.imie, p.placa, (mz.max_placa - p.placa) AS roznica
+FROM Pracownicy p
+JOIN (
+    SELECT zID, MAX(placa) AS max_placa 
+    FROM Pracownicy 
+    GROUP BY zID
+) mz ON p.zID = mz.zID;
+
+-- Widoki
+
+-- ZADANIE 21
+CREATE VIEW v_Pracownicy AS
+SELECT p.pID, p.imie, p.nazwisko, e.nazwa AS etat, z.nazwa AS zaklad
+FROM Pracownicy p
+JOIN Etaty e ON p.eID = e.eID
+JOIN Zaklady z ON p.zID = z.zID;
+GO
+
+-- a)
+SELECT DISTINCT zaklad FROM v_Pracownicy WHERE zaklad LIKE '%ow%';
+-- b)
+SELECT * FROM v_Pracownicy WHERE etat = 'ASYSTENT';
+-- c)
+SELECT TOP 1 zaklad FROM v_Pracownicy 
+WHERE etat = 'ADIUNKT' 
+GROUP BY zaklad 
+ORDER BY COUNT(*) DESC;
+GO
+
+-- ZADANIE 22
+ALTER VIEW v_Pracownicy AS
+SELECT p.pID, p.imie, p.nazwisko, e.nazwa AS etat, z.nazwa AS zaklad, p.placa, p.zatrudniony
+FROM Pracownicy p
+JOIN Etaty e ON p.eID = e.eID
+JOIN Zaklady z ON p.zID = z.zID;
+GO
+
+-- a)
+SELECT TOP 1 zaklad FROM v_Pracownicy GROUP BY zaklad ORDER BY SUM(placa) DESC;
+-- b)
+SELECT zaklad, AVG(placa) AS srednia_placa FROM v_Pracownicy GROUP BY zaklad;
+-- c)
+SELECT TOP 1 zaklad FROM v_Pracownicy 
+WHERE YEAR(zatrudniony) > 2000 
+GROUP BY zaklad 
+ORDER BY COUNT(*) DESC;
+
+-- Indeksy
+
+-- ZADANIE 23
+CREATE INDEX idx_zatrudniony ON Pracownicy(zatrudniony);
+
+-- ZADANIE 24
+CREATE INDEX idx_zID ON Pracownicy(zID);
+
+-- ZADANIE 25
+CREATE INDEX idx_tytul_placa ON Pracownicy(tytul, placa);
+CREATE UNIQUE INDEX idx_email ON Pracownicy(email);
+
+-- Transakcje
+
+-- ZADANIE 26
+BEGIN TRY
+    BEGIN TRAN;
+    UPDATE Pracownicy SET placa = placa + 500 WHERE YEAR(zatrudniony) < 2000;
+    COMMIT TRAN;
+END TRY
+BEGIN CATCH
+    ROLLBACK TRAN;
+END CATCH;
+
+-- ZADANIE 27
+BEGIN TRAN;
+IF EXISTS (SELECT 1 FROM Zaklady WHERE nazwa = 'Technologii Cyfrowych')
+    ROLLBACK TRAN;
+ELSE
+BEGIN
+    UPDATE Zaklady SET nazwa = 'Technologii Cyfrowych' WHERE nazwa = 'Informatyki Stosowanej';
+    COMMIT TRAN;
+END;
+
+-- ZADANIE 28
+BEGIN TRAN;
+UPDATE Pracownicy SET placa = placa * 1.05;
+
+IF (SELECT SUM(placa) FROM Pracownicy) > 100000
+    ROLLBACK TRAN;
+ELSE
+    COMMIT TRAN;
