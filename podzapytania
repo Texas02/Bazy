@@ -1,0 +1,60 @@
+1. SELECT * FROM Pracownicy WHERE eID = (SELECT eID FROM Etaty WHERE nazwa = 'PROFESOR')
+2. select nazwisko, imię from Pracownicy where zID = ( select zID from Zakłady where nazwa = 'Maszyn i Urządzeń Rolniczych')
+3. select nazwa from Zakłady z where ( select count(*) from Pracownicy p where p.zID = z.zID) < 2 
+4. select nazwa from Zakłady where zID not in ( select zID from Pracownicy where tytuł = ' prof. dr. hab')
+5. select nazwisko, imię from Pracownicy where pID in ( select kierownik from Zakłady z where (select count(*) from Pracownicy p where p.zID = z.zID) >= 3 )
+6. select * from Pracownicy where płaca < ( select avg(płaca) from Pracownicy) 
+7. select * from Pracownicy p1	where płaca > ( select avg(płaca) from Pracownicy p2 where p2.zID = p1.zID)
+8. select * from Pracownicy where płaca > any (select płaca from Pracownicy where zID = ( select zID from Zakłady where nazwa = 'Informatyki stosowanej'))
+9. select nazwisko, płaca from Pracownicy where płaca > all ( select płaca from Pracownicy where eID = ( select eID from Etaty where nazwa = 'ASYSTENT')) 
+10.select nazwa from Zakłady where zID in ( select zID from Pracownicy where płaca > 8000)
+
+
+:widoki 
+create view widok as select p.pID, p.imię, p.nazwisko, e.nazwa as etat, z.nazwa as zaklad
+from Pracownicy p
+join Etaty e ON p.eID = e.eID
+join Zakłady z ON p.zID = z.zID;
+a) select zaklad from widok where zaklad like '%ow%'
+b) select * from widok where etat = 'ASYSTENT'
+c) select top 1 zaklad from widok 
+where etat = 'ADIUNKT'
+group by zaklad 
+order by count(*) desc
+
+alter view widok as
+select p.pID, p.imię, p.nazwisko, e.nazwa AS etat, z.nazwa AS zaklad, p.płaca, p.zatrudniony
+from Pracownicy p
+join Etaty e ON p.eID = e.eID
+join Zakłady z ON p.zID = z.zID;
+a) select top 1 zaklad from widok group by zaklad order by sum(płaca) desc 
+
+
+: indexy 
+23. create index idx_zatrudniony on Pracownicy(zatrudniony)
+24. create index idx_zID on Pracownicy(zID)
+25. create index idx_tytul_placa on Pracownicy(tytuł,płaca)
+    create unique index idx_email on pracownicy(email)
+
+: transkrypcje 
+26. begin try begin tran 
+update  Pracownicy set płaca = płaca + 500 where year(zatrudniony) < 2000 
+commit tran 
+end try 
+begin catch 
+rollback tran 
+end catch 
+27. begin tran 
+if exists (select 1 from Zakłady where nazwa = 'Technologii Cyfrowych')
+rollback tran 
+else 
+    begin 
+update Zakłady set nazwa = 'Technologii Cyfrowych' where nazwa = 'Informatyki Stosowanej'
+commit tran 
+end 
+28. begin tran 
+    update Pracownicy set płaca  = płaca * 1.05
+if (select sum(płaca) from Pracownicy) > 100000 
+    rollback tran 
+else 
+    commit tran 
